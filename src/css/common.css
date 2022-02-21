@@ -16,3 +16,18 @@ img {
   display: block;
   max-width: 100%;
 }
+
+.timer {
+
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  font-weight: 500;
+  font-size: x-large;
+  margin: 15vw auto;
+  width: 45px;
+}
+
+span.label {
+  margin-right: 15px;
+}
