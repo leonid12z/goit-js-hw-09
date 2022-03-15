@@ -38,8 +38,8 @@ const timer = {
             return;
          }
          // console.log(time);
-         upDateClockmin(time);
-      }, 1000)
+         upDateClockmin(time, 1000);
+      });
    },
 };
 
