@@ -2,86 +2,65 @@
 import flatpickr from "flatpickr";
 // Дополнительный импорт стилей
 import "flatpickr/dist/flatpickr.min.css";
-import Notiflix from 'notiflix';
+import Notiflix, { Notify } from 'notiflix';
 
 // npm i flatpickr --save
 // npm i notiflix
 
+let start = true;
+
+const input = document.querySelector('#datetime-picker');
+const buttonStart = document.querySelector('[data-start]');
+const timer = document.querySelector('.timer');
+
+let timerId = null;
+if (start) {
+   buttonStart.setAttribute('disabled', true);
+}
+
 const refs = {
-   input: document.querySelector('#datetime-picker'),
-   button: document.querySelector('button[data-start]'),
-   days: document.querySelector('span[data-days]'),
-   hours: document.querySelector('span[data-hours]'),
-   minutes: document.querySelector('span[data-minutes]'),
-   seconds: document.querySelector('span[data-seconds]'),
+   dataDays: timer.querySelector('[data-days]'),
+   dataHours: timer.querySelector('[data-hours]'),
+   dataMinutes: timer.querySelector('[data-minutes]'),
+   dataSeconds: timer.querySelector('[data-seconds]'),
 };
 
-refs.button.disabled = true;
-refs.button.addEventListener('click', () => {
-   timer.start(); 
-})
+const options = {
+   // Включает выбор времени
+   enableTime: true,
+   // !Выбора времени в 24-часовом режиме без выбора AM/PM,
+   //  Если включено.
+   time_24hr: true,
+   //   Устанавливает начальную выбранную дату
+   defaultDate: new Date(),
+   //   Регулирует шаг ввода минут
+   minuteIncrement: 1,
+  
+   onClose(selectedDates) {
+      if (selectedDates[0] < new Date().getTime()) {
+         start = false;
+         buttonStart.setAttribute('disabled', true);
+         //   !window.alert("Please choose a date in the future");
+         Notiflix.Notify.failure("Please choose a date in the future");
+         return;
+      }
 
-const timer = {
-   intervalId: null,
-   start() {
-      setInterval(() => {
+      buttonStart.removeAttribute('disabled', true);
+      start = true;
+      buttonStart.addEventListener('click', function startTimer() {
+         buttonStart.setAttribute('disabled', true);
+         input.setAttribute('disabled', true);
 
-         const currentTime = Date.now();
-         const selectedData = new Date(refs.input.value).getTime();
-         const deltaTime = selectedData - currentTime;
-         const time = convertMs(deltaTime);
-
-         refs.button.disabled = true;
-
-         if (deltaTime < 0) {
-            clearInterval(this.intervalId)
-            return;
+         function time() {
+            let counTime = selectedDates[0].getTime() - Date.now();
+            convertMs(counTime);
          }
-         // console.log(time);
-         upDateClockmin(time, 1000);
+         timerId = setInterval(time, 1000);
       });
    },
 };
 
-function upDateClockmin({ days, hours, minutes, seconds }) {
-   refs.days.textContent = addLeadingZero(days);
-   refs.hours.textContent = addLeadingZero(hours);
-   refs.minutes.textContent = addLeadingZero(minutes);
-   refs.seconds.textContent = addLeadingZero(seconds);
-}
-
-function addLeadingZero(value) {
-   return String(value).padStart(2, '0');
-}
-
-const options = {
-   // включает выбор времени.
-   enableTime: true,
-   // выбор времени в 24-часовом режиме без выбора AM/PM,
-  // если включено.
-   time_24hr: true,
-  // устанавливает начальную выбранную дату.
-   defaultDate: new Date(),
-   // регулирует вод минут.
-   minuteIncrement: 1,
-  
-   onClose(selectedDates) {
-      const selectedDate = selectedDates[0];
-      const dateNow = Date.now();
-      
-      if (selectedDate <= dateNow) {
-         // ! window.alert("Please choose a date in the future")
-         Notiflix.Notify.failure("Please choose a date in the future");
-      } else { 
-         refs.button.disabled = false;
-      }
-
-      console.log(selectedDates[0]);
-      
-  },
-};
-
-flatpickr(refs.input, options);
+flatpickr('input#datetime-picker', options);
 
 function convertMs(ms) {
   // Number of milliseconds per unit of time
@@ -91,17 +70,26 @@ function convertMs(ms) {
   const day = hour * 24;
 
   // Remaining days
-  const days = Math.floor(ms / day);
+  const days = addLeadingZero(Math.floor(ms / day));
   // Remaining hours
-  const hours = Math.floor((ms % day) / hour);
+  const hours = addLeadingZero(Math.floor((ms % day) / hour));
   // Remaining minutes
-  const minutes = Math.floor(((ms % day) % hour) / minute);
+  const minutes = addLeadingZero(Math.floor(((ms % day) % hour) / minute));
   // Remaining seconds
-  const seconds = Math.floor((((ms % day) % hour) % minute) / second);
+  const seconds = addLeadingZero(Math.floor((((ms % day) % hour) % minute) / second));
 
-  return { days, hours, minutes, seconds };
+  function addLeadingZero(value) {
+    return String(value).padStart(2, '0');
+  }
+
+  refs.dataDays.textContent = days;
+  refs.dataHours.textContent = hours;
+  refs.dataMinutes.textContent = minutes;
+  refs.dataSeconds.textContent = seconds;
+
+  // !return {days, hours, minutes, seconds};
 }
 
-// console.log(convertMs(2000)); // {days: 0, hours: 0, minutes: 0, seconds: 2}
-// console.log(convertMs(140000)); // {days: 0, hours: 0, minutes: 2, seconds: 20}
-// console.log(convertMs(24140000)); // {days: 0, hours: 6 minutes: 42, seconds: 20}
+// ?console.log(convertMs(2000)); // {days: 0, hours: 0, minutes: 0, seconds: 2}
+// ?console.log(convertMs(140000)); // {days: 0, hours: 0, minutes: 2, seconds: 20}
+// ?console.log(convertMs(24140000)); // {days: 0, hours: 6 minutes: 42, seconds: 20}
